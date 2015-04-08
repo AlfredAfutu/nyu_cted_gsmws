@@ -227,9 +227,9 @@ class GSMDecoder(threading.Thread):
             if report.valid:
                 logging.info("(decoder %d) MeasurementReport: " % (self.decoder_id) + str(report))
                 self.reports.put(report.current_strengths)
-                for arfcn in report.current_strengths:
-                    self.update_max_strength(arfcn,report.current_strengths[arfcn])
-                    self.update_recent_strengths(arfcn, report.current_strengths[arfcn])
+             # removed the for loop from here
+                self.update_max_strength(report.current_strengths)
+                self.update_recent_strengths(report.current_strengths)
 
                 for arfcn in report.current_bsics:
                     if report.current_bsics[arfcn] != None:

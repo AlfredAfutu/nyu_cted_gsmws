@@ -208,15 +208,10 @@ class BTS(object):
         holdoff = 3600*24*7 # 7 days
         bsic = 1 # TODO does this matter?
         try:
-            delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
-            self.neighbor_table.execute(delete_query_str)
             for arfcn, ip in fake_neighbors.iteritems():
-               # query_str = "UPDATE NEIGHBOR_TABLE SET C0 = ?, UPDATED = ?, HOLDOFF = ?, BSIC = ? WHERE IPADDRESS = ?;"
-               # delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
-               # self.neighbor_table.execute(delete_query_str)
-                insert_query_str = "INSERT INTO NEIGHBOR_TABLE VALUES(?,?,?,?,?);"
-               # self.neighbor_table.execute(query_str, (arfcn, updated, holdoff, bsic, ip))
-                self.neighbor_table.execute(insert_query_str, (ip, updated, holdoff, arfcn, bsic))
+              #
+  query_str = "UPDATE NEIGHBOR_TABLE SET C0 = ?, UPDATED = ?, HOLDOFF = ?, BSIC = ? WHERE IPADDRESS = ?;"
+                self.neighbor_table.execute(query_str, (arfcn, updated, holdoff, bsic, ip))
             self.neighbor_table.commit()
             logging.info("Updated NeighborTable.")
             return True

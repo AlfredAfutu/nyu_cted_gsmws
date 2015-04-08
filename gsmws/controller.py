@@ -121,8 +121,8 @@ class Controller(object):
 
         gsmd = decoder.GSMDecoder(stream, self.gsmwsdb_lock,
                                   self.gsmwsdb_location, loglvl=self.loglvl)
-        self.bts = self.bts_class(self.openbtsdb_loc, self.OPENBTS_PROCESS_NAME,
-                                  self.TRANSCEIVER_PROCESS_NAME, self.loglvl)
+        self.bts = self.bts_class();
+        
         self.bts.init_decoder(gsmd)
         last_cycle_time = datetime.datetime.now()
         ignored_since = datetime.datetime.now()
@@ -146,7 +146,7 @@ class Controller(object):
                     ignored_since = now
                     last_cycle_time = now
 
-                logging.info("Current ARFCN: %s" % self.bts.current_arfcn)
+                logging.info("Current ARFCN: %s" % self.bts.current_arfcn())
 
                 rssis = self.bts.decoder.rssi()
 
@@ -180,7 +180,7 @@ class HandoverController(Controller):
         - stream: The stream to read from (either sys.STDIN or a gsm.command_stream)
         - start_cmd: A shell command that can properly restart this BTS
         """
-        self.BTS_CONF = [bts1_conf, bts2_conf]
+        self.BTS_CONF = [bts1_conf]
 
         self.NEIGHBOR_CYCLE_TIME = nct # seconds to wait before switching up the neighbor list
         self.SLEEP_TIME = sleep # seconds between rssi checks
@@ -206,14 +206,15 @@ class HandoverController(Controller):
         for conf in self.BTS_CONF:
             gsmd = decoder.GSMDecoder(conf['stream'], self.gsmwsdb_lock, self.gsmwsdb_location,
                                       loglvl=self.loglvl, decoder_id=cycle_count)
-            bts = conf['bts_class'](conf['db_loc'], conf['openbts_proc'], conf['trans_proc'],
-                                    self.loglvl, id_num=cycle_count,
-                                    start_time=(now+datetime.timedelta(seconds=90*cycle_count)))
+        #    bts = conf['bts_class'](conf['db_loc'], conf['openbts_proc'], conf['trans_proc'],self.loglvl, id_num=cycle_count,start_time=(now+datetime.timedelta(seconds=90*cycle_count)))
+
+            bts = conf['bts_class'](self.loglvl);
 
             if not bts.offset_correct:
+                #this is set in factory, probably something he uses. 
                 raise ValueError("Non-default TRX.RadioFrequencyOffset, verify radios are properly configured.")
 
-            bts.init_decoder(gsmd)
+            #bts.init_decoder(gsmd)
 
             # set up cycle time/ignored since
             bts.ignored_since = now
