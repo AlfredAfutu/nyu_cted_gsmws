@@ -2,6 +2,7 @@
 This file is part of GSMWS.
 """
 
+import os
 import time
 import datetime
 import random
@@ -12,6 +13,7 @@ import threading
 import decoder
 import gsm
 import bts
+
 
 """
 The controller has three tasks:
@@ -111,8 +113,18 @@ class Controller(object):
             existing = [arfcn for res in available_arfcns for arfcn in res]
         return random.sample([_ for _ in range(1,124) if _ not in existing], 5)
 
+     def put_c0s_into_file(self):
+        with open('/var/run/c0file.txt', 'w+') as c0file:
+            c0file.write('45')
+            c0file.write('55')
+            c0file.write('65')
+            c0file.write('75')
+            c0file.write('85')
+
     def main(self, stream=None, cmd=None):
         self.initdb() # set up the gsmws db
+
+        self.put_c0s_into_file() # set up c0 file with 5 random c0s
 
         if stream==None:
             if cmd==None:
@@ -239,6 +251,9 @@ class HandoverController(Controller):
                      % (bts_id_num, self.bts_units[bts_id_num].current_arfcn,
                         other_arfcns, random_arfcns))
         return other_arfcns + random_arfcns
+
+   
+
 
     def main(self):
         self.initdb() # set up the gsmws db

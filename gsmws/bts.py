@@ -171,7 +171,7 @@ class BTS(object):
 
         # Need to generate a mapping of ARFCNs : IPs
         fake_neighbors = {}
-        for i in range(0, len(arfcns)):
+        for i in range(0, 5)#len(arfcns)) # set 5 IPs :
             chan = arfcns[i]
             fake_neighbors[chan] = "127.0.10.%d:16001" % (i + 10,)
 
