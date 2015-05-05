@@ -116,10 +116,10 @@ class Controller(object):
      def put_c0s_into_file(self):
         with open('/var/run/c0file.txt', 'w+') as c0file:
             c0file.write('45')
-            c0file.write('55')
-            c0file.write('65')
-            c0file.write('75')
-            c0file.write('85')
+            c0file.write('55\n')
+            c0file.write('65\n')
+            c0file.write('75\n')
+            c0file.write('85\n')
 
     def main(self, stream=None, cmd=None):
         self.initdb() # set up the gsmws db
@@ -132,7 +132,7 @@ class Controller(object):
             stream = gsm.command_stream(cmd)
 
         gsmd = decoder.GSMDecoder(stream, self.gsmwsdb_lock,
-                                  self.gsmwsdb_location, loglvl=self.loglvl)
+                                  self.gsmwsdb_location, self.NEIGHBOR_CYCLE_TIME, loglvl=self.loglvl)
         self.bts = self.bts_class();
         
         self.bts.init_decoder(gsmd)

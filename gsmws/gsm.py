@@ -103,11 +103,17 @@ class GSMTAP(object):
         self.timestamp = datetime.datetime.now()
         self.message = message
         self.arfcn = self.parse()
+        self.num_cells = self.get_num_cells()
 
     def parse(self, message=None):
         if message == None:
             message = self.message
         return int(regex['arfcn'].findall(message)[0])
+
+    def get_num_cells(self, message=None):
+        if message == None:
+            message = self.message
+        return int(regex['num_cells'].findall(message)[0])
 
 class SystemInformationTwo(object):
     def __init__(self, message):

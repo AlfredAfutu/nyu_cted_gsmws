@@ -10,6 +10,7 @@ import datetime
 import Queue
 import sqlite3
 import zmq
+from sets import Set
 
 class MeasurementReportList(object):
     def __init__(self, maxlen=10000):
@@ -67,16 +68,19 @@ class GSMDecoder(threading.Thread):
     This is responsible for managing the packet stream from tshark, processing
     reports, and storing the data.
     """
-    def __init__(self, stream, db_lock, gsmwsdb_location="/tmp/gsmws.db", maxlen=100, loglvl=logging.INFO, decoder_id=0):
+    def __init__(self, stream, db_lock, nct, gsmwsdb_location="/tmp/gsmws.db", maxlen=100, loglvl=logging.INFO, decoder_id=0):
         threading.Thread.__init__(self)
         self.stream = stream
         self.current_message = ""
         self.current_arfcn = None
+        self.num_of_cells = None
         self.last_arfcns = []
         self.ncc_permitted = None
         self.ignore_reports = False # ignore measurement reports
         self.msgs_seen = 0
 
+        self.list_of_arfcns = []
+        self.NEIGHBOR_CYCLE_TIME = nct
         self.gsmwsdb_lock = db_lock
         self.gsmwsdb_location = gsmwsdb_location
         self.gsmwsdb = None # this gets created in run()
@@ -242,5 +246,9 @@ class GSMDecoder(threading.Thread):
         elif message.startswith("GSM TAP Header"):
             gsmtap = gsm.GSMTAP(message)
             self.current_arfcn = gsmtap.arfcn
+            self.num_of_cells = gsmtap.num_cells
+            if self.num_of_cells == 0:
+                self.list_of_arfcns.append(gsmtap.arfcn)
+            
             logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
 

@@ -207,6 +207,7 @@ class BTS(object):
         updated = int(datetime.datetime.now().strftime("%s"))
         holdoff = 3600*24*7 # 7 days
         bsic = 1 # TODO does this matter?
+        """
         try:
             delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
             self.neighbor_table.execute(delete_query_str)
@@ -224,3 +225,4 @@ class BTS(object):
             logging.info("SQlite Operational Error is : '%s'" % operationalError)
             logging.info("Could not update NeighborTable.")
             return False
+        """
