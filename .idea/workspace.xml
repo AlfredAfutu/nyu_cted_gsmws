@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a675511d-061a-465d-ade5-a728c0b673d1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gsmws/decoder.py" afterPath="$PROJECT_DIR$/gsmws/decoder.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gsmws/gsm.py" afterPath="$PROJECT_DIR$/gsmws/gsm.py" />
-    </list>
+    <list default="true" id="a675511d-061a-465d-ade5-a728c0b673d1" name="Default" comment="" />
     <ignored path="nyu_cted_gsmws.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
