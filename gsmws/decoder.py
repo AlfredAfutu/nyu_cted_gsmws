@@ -6,6 +6,7 @@ import gsm
 import collections
 import threading
 import logging
+import time
 import datetime
 import Queue
 import sqlite3
@@ -68,6 +69,8 @@ class GSMDecoder(threading.Thread):
     This is responsible for managing the packet stream from tshark, processing
     reports, and storing the data.
     """
+
+
     def __init__(self, stream, db_lock, nct, gsmwsdb_location="/tmp/gsmws.db", maxlen=100, loglvl=logging.INFO, decoder_id=0):
         threading.Thread.__init__(self)
         self.stream = stream
@@ -79,7 +82,10 @@ class GSMDecoder(threading.Thread):
         self.ignore_reports = False # ignore measurement reports
         self.msgs_seen = 0
 
-        self.list_of_arfcns = []
+        self.runtime = {}
+        self.runtime["initial_time"] = None
+        self.runtime["arfns"] = []
+        self.runtime["timestamp"] = []
         self.NEIGHBOR_CYCLE_TIME = nct
         self.gsmwsdb_lock = db_lock
         self.gsmwsdb_location = gsmwsdb_location
@@ -221,6 +227,8 @@ class GSMDecoder(threading.Thread):
         self.rssi()
         self.__write_rssi()
 
+
+
     def process(self, message):
         self.msgs_seen += 1
         if message.startswith("GSM A-I/F DTAP - Measurement Report"):
@@ -247,8 +255,19 @@ class GSMDecoder(threading.Thread):
             gsmtap = gsm.GSMTAP(message)
             self.current_arfcn = gsmtap.arfcn
             self.num_of_cells = gsmtap.num_cells
+            if self.runtime["initial_time"] == None:
+                self.runtime["intial_time"] = datetime.datetime.now()
+            timestamp = datetime.datetime.now()
+            self.runtime["timestamp"].append(timestamp)
             if self.num_of_cells == 0:
-                self.list_of_arfcns.append(gsmtap.arfcn)
-            
+                self.runtime["arfcns"].append(gsmtap.arfcn)
+
+            if timestamp - self.runtime["intial_time"] > self.NEIGHBOR_CYCLE_TIME:
+                if len(self.runtime["arfcns"]) > 0:
+                    unique_list_of_arfcns = list(set(self.runtime["arfcns"]))
+                    with self.gsmwsdb_lock:
+                        for arfcn in unique_list_of_arfcns:
+                            self.gsmwsdb.execute("INSERT INTO AVAIL_ARFCN VALUES(?,?,?)",
+                                                 (arfcn, self.runtime["timestamp"].index(arfcn), 0))
             logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
 
