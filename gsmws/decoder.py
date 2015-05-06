@@ -84,8 +84,10 @@ class GSMDecoder(threading.Thread):
 
         self.runtime = {}
         self.runtime["initial_time"] = None
-        self.runtime["arfns"] = []
+        self.runtime["arfcns"] = []
+        self.runtime["rssis"] = []
         self.runtime["timestamp"] = []
+        self.runtime["arfcn_tracking"] = [False, False, False, False, False]
         self.NEIGHBOR_CYCLE_TIME = nct
         self.gsmwsdb_lock = db_lock
         self.gsmwsdb_location = gsmwsdb_location
@@ -254,20 +256,62 @@ class GSMDecoder(threading.Thread):
         elif message.startswith("GSM TAP Header"):
             gsmtap = gsm.GSMTAP(message)
             self.current_arfcn = gsmtap.arfcn
-            self.num_of_cells = gsmtap.num_cells
+            neighbor_details = gsmtap.neighbor_details
             if self.runtime["initial_time"] == None:
-                self.runtime["intial_time"] = datetime.datetime.now()
+                self.runtime["initial_time"] = datetime.datetime.now()
             timestamp = datetime.datetime.now()
-            self.runtime["timestamp"].append(timestamp)
-            if self.num_of_cells == 0:
-                self.runtime["arfcns"].append(gsmtap.arfcn)
 
-            if timestamp - self.runtime["intial_time"] > self.NEIGHBOR_CYCLE_TIME:
+            if len(neighbor_details["arfcns"]) == 1:
+                self.runtime["arfcn_tracking"].insert(0, True)
+                for arfcn in neighbor_details["arfcns"]:
+                    self.runtime["arfcns"].insert(neighbor_details["arfcns"].index(arfcn), arfcn)
+                for rssi in neighbor_details["rssis"]:
+                    self.runtime["rssis"].insert(neighbor_details["rssis"].index(rssi), rssi)
+            elif len(neighbor_details["arfcns"]) == 2:
+                self.runtime["arfcn_tracking"].insert(0, True)
+                self.runtime["arfcn_tracking"].insert(1, True)
+                for arfcn in neighbor_details["arfcns"]:
+                    self.runtime["arfcns"].insert(neighbor_details["arfcns"].index(arfcn), arfcn)
+                for rssi in neighbor_details["rssis"]:
+                    self.runtime["rssis"].insert(neighbor_details["rssis"].index(rssi), rssi)
+            elif len(neighbor_details["arfcns"]) == 3:
+                self.runtime["arfcn_tracking"].insert(0, True)
+                self.runtime["arfcn_tracking"].insert(1, True)
+                self.runtime["arfcn_tracking"].insert(2, True)
+
+                for arfcn in neighbor_details["arfcns"]:
+                    self.runtime["arfcns"].insert(neighbor_details["arfcns"].index(arfcn), arfcn)
+                for rssi in neighbor_details["rssis"]:
+                    self.runtime["rssis"].insert(neighbor_details["rssis"].index(rssi), rssi)
+            elif len(neighbor_details["arfcns"]) == 4:
+                self.runtime["arfcn_tracking"].insert(0, True)
+                self.runtime["arfcn_tracking"].insert(1, True)
+                self.runtime["arfcn_tracking"].insert(2, True)
+                self.runtime["arfcn_tracking"].insert(3, True)
+                for arfcn in neighbor_details["arfcns"]:
+                    self.runtime["arfcns"].insert(neighbor_details["arfcns"].index(arfcn), arfcn)
+                for rssi in neighbor_details["rssis"]:
+                    self.runtime["rssis"].insert(neighbor_details["rssis"].index(rssi), rssi)
+            elif len(neighbor_details["arfcns"]) == 5:
+                self.runtime["arfcn_tracking"].insert(0, True)
+                self.runtime["arfcn_tracking"].insert(1, True)
+                self.runtime["arfcn_tracking"].insert(2, True)
+                self.runtime["arfcn_tracking"].insert(3, True)
+                self.runtime["arfcn_tracking"].insert(4, True)
+                for arfcn in neighbor_details["arfcns"]:
+                    self.runtime["arfcns"].insert(neighbor_details["arfcns"].index(arfcn), arfcn)
+                for rssi in neighbor_details["rssis"]:
+                    self.runtime["rssis"].insert(neighbor_details["rssis"].index(rssi), rssi)
+            # self.num_of_cells = gsmtap.num_cells
+
+            if timestamp - self.runtime["initial_time"] > self.NEIGHBOR_CYCLE_TIME:
                 if len(self.runtime["arfcns"]) > 0:
-                    unique_list_of_arfcns = list(set(self.runtime["arfcns"]))
+                    # unique_list_of_arfcns = list(set(self.runtime["arfcns"]))
                     with self.gsmwsdb_lock:
-                        for arfcn in unique_list_of_arfcns:
-                            self.gsmwsdb.execute("INSERT INTO AVAIL_ARFCN VALUES(?,?,?)",
-                                                 (arfcn, self.runtime["timestamp"].index(arfcn), 0))
+                        for tracker in self.runtime["arfcn_tracking"]:
+                            if tracker is False:
+                                self.gsmwsdb.execute("INSERT INTO AVAIL_ARFCN VALUES(?,?,?)",
+                                                 (self.runtime["arfcns"].index(tracker), timestamp, self.runtime["rssis"].index(tracker)))
+
             logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
 

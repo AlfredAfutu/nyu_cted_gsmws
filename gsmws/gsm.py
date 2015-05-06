@@ -66,8 +66,8 @@ GSM A-I/F DTAP - Measurement Report
     def parse(self, last_arfcns, current_arfcn, result_msg=None):
         if result_msg == None:
             result_msg = self.result_msg
-        strengths = dict(zip(last_arfcns,[-0.001 for _ in range(0,len(last_arfcns))]))
-        bsics = dict(zip(last_arfcns,[None for _ in range(0,len(last_arfcns))]))
+        strengths = dict(zip(last_arfcns, [-0.001 for _ in range(0, len(last_arfcns))]))
+        bsics = dict(zip(last_arfcns, [None for _ in range(0, len(last_arfcns))]))
         serving_strength = int(regex['current_strength'].findall(result_msg)[0])
         strengths[current_arfcn] = serving_strength
 
@@ -94,6 +94,8 @@ GSM A-I/F DTAP - Measurement Report
         self.valid = True
         return strengths, bsics
 
+
+
     def __str__(self):
         return "%s %s" % (self.timestamp, str(self.current_strengths))
 
@@ -103,17 +105,27 @@ class GSMTAP(object):
         self.timestamp = datetime.datetime.now()
         self.message = message
         self.arfcn = self.parse()
-        self.num_cells = self.get_num_cells()
+        self.neighbor_details = self.get_arfcns()
 
     def parse(self, message=None):
         if message == None:
             message = self.message
         return int(regex['arfcn'].findall(message)[0])
 
-    def get_num_cells(self, message=None):
+    def get_arfcns(self, message=None):
         if message == None:
             message = self.message
-        return int(regex['num_cells'].findall(message)[0])
+        neighbors_dict = {}
+        neighbors_dict["arfcns"] = []
+        neighbors_dict["rssis"] = []
+        neighbor_reports = regex['cell_report'].findall(message)
+        assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
+        for report in neighbor_reports:
+            neighbors_dict["arfcns"].append(int(report[1]))
+            neighbors_dict["rssis"].append(int(report[0]))
+
+        return neighbors_dict
+
 
 class SystemInformationTwo(object):
     def __init__(self, message):
