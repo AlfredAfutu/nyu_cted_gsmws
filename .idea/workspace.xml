@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a675511d-061a-465d-ade5-a728c0b673d1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gsmws/gsm.py" afterPath="$PROJECT_DIR$/gsmws/gsm.py" />
-    </list>
+    <list default="true" id="a675511d-061a-465d-ade5-a728c0b673d1" name="Default" comment="" />
     <ignored path="nyu_cted_gsmws.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -26,10 +24,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="gsm.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="gsm.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gsmws/gsm.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5562404" vertical-offset="1889" max-vertical-offset="3114">
+            <state vertical-scroll-proportion="0.0" vertical-offset="1889" max-vertical-offset="3114">
               <caret line="125" column="0" selection-start-line="125" selection-start-column="0" selection-end-line="125" selection-end-column="0" />
               <folding>
                 <element signature="e#37#54#0" expanded="true" />
@@ -38,11 +36,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="decoder.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="decoder.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gsmws/decoder.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="4368" max-vertical-offset="5652">
-              <caret line="264" column="55" selection-start-line="264" selection-start-column="55" selection-end-line="264" selection-end-column="55" />
+            <state vertical-scroll-proportion="0.3490566" vertical-offset="4368" max-vertical-offset="5652">
+              <caret line="264" column="16" selection-start-line="264" selection-start-column="16" selection-end-line="264" selection-end-column="16" />
               <folding />
             </state>
           </provider>
@@ -308,7 +306,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="24" width="1301" height="744" extended-state="6" />
+    <frame x="65" y="24" width="1301" height="744" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -387,21 +385,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gsmws/decoder.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="4368" max-vertical-offset="5652">
-          <caret line="264" column="55" selection-start-line="264" selection-start-column="55" selection-end-line="264" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gsmws/gsm.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5562404" vertical-offset="1889" max-vertical-offset="3114">
+        <state vertical-scroll-proportion="0.0" vertical-offset="1889" max-vertical-offset="3114">
           <caret line="125" column="0" selection-start-line="125" selection-start-column="0" selection-end-line="125" selection-end-column="0" />
           <folding>
             <element signature="e#37#54#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gsmws/decoder.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3490566" vertical-offset="4368" max-vertical-offset="5652">
+          <caret line="264" column="16" selection-start-line="264" selection-start-column="16" selection-end-line="264" selection-end-column="16" />
+          <folding />
         </state>
       </provider>
     </entry>

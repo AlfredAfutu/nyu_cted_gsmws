@@ -121,8 +121,8 @@ class GSMTAP(object):
         neighbor_reports = regex['cell_report'].findall(message)
         assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
         for report in neighbor_reports:
-            neighbors_dict["arfcns"].insert(neighbor_reports.index(report), int(report[1]))
-            neighbors_dict["rssis"].insert(neighbor_reports.index(report), int(report[0]))
+            neighbors_dict["arfcns"].insert(report, int(report[1]))
+            neighbors_dict["rssis"].insert(report, int(report[0]))
 
         return neighbors_dict
 
