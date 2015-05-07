@@ -266,7 +266,7 @@ class GSMDecoder(threading.Thread):
             if len(neighbor_details["arfcns"]) > 0:
 
                 for arfcn in neighbor_details["arfcns"]:
-                        logging.info("(decoder %d) GSMTAP: Neighbor ARFCN=%s" % arfcn)
+                        logging.info("(decoder %d) GSMTAP: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
                         if neighbor_details["arfcns"][arfcn] not in self.runtime["arfcns"]:
                             self.runtime["arfcns"].append(neighbor_details["arfcns"][arfcn])
                             self.runtime["rssis"].append(neighbor_details["rssis"][arfcn])

@@ -113,9 +113,9 @@ class Controller(object):
             existing = [arfcn for res in available_arfcns for arfcn in res]
         return random.sample([_ for _ in range(1,124) if _ not in existing], 5)
 
-     def put_c0s_into_file(self):
+    def put_c0s_into_file(self):
         with open('/var/run/c0file.txt', 'w+') as c0file:
-            c0file.write('45')
+            c0file.write('45\n')
             c0file.write('55\n')
             c0file.write('65\n')
             c0file.write('75\n')
