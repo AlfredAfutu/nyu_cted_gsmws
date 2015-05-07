@@ -254,6 +254,7 @@ class GSMDecoder(threading.Thread):
             self.ncc_permitted = sysinfo2.ncc_permitted
             logging.debug("(decoder %d) SystemInformation2: %s" % (self.decoder_id, str(sysinfo2.arfcns)))
         elif message.startswith("GSM TAP Header"):
+
             gsmtap = gsm.GSMTAP(message)
             self.current_arfcn = gsmtap.arfcn
             neighbor_details = gsmtap.neighbor_details
@@ -263,8 +264,9 @@ class GSMDecoder(threading.Thread):
             indexes = []
 
             if len(neighbor_details["arfcns"]) > 0:
+
                 for arfcn in neighbor_details["arfcns"]:
-                        
+                        logging.info("(decoder %d) GSMTAP: Neighbor ARFCN=%s" % arfcn)
                         if neighbor_details["arfcns"][arfcn] not in self.runtime["arfcns"]:
                             self.runtime["arfcns"].append(neighbor_details["arfcns"][arfcn])
                             self.runtime["rssis"].append(neighbor_details["rssis"][arfcn])
