@@ -113,18 +113,10 @@ class Controller(object):
             existing = [arfcn for res in available_arfcns for arfcn in res]
         return random.sample([_ for _ in range(1,124) if _ not in existing], 5)
 
-    def put_c0s_into_file(self):
-        with open('/var/run/c0file.txt', 'w+') as c0file:
-            c0file.write('45\n')
-            c0file.write('55\n')
-            c0file.write('65\n')
-            c0file.write('75\n')
-            c0file.write('85\n')
-
     def main(self, stream=None, cmd=None):
         self.initdb() # set up the gsmws db
 
-        self.put_c0s_into_file() # set up c0 file with 5 random c0s
+        #self.put_c0s_into_file() # set up c0 file with 5 random c0s
 
         if stream==None:
             if cmd==None:
@@ -153,7 +145,7 @@ class Controller(object):
                     except IndexError:
                         logging.error("Unable to pick new safe ARFCN!")
                         pass # just don't pick for now
-                    self.bts.set_neighbors(self.pick_new_neighbors())
+                    self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
                     self.bts.decoder.ignore_reports = True
                     ignored_since = now
                     last_cycle_time = now

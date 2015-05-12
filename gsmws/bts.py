@@ -29,6 +29,7 @@ class BTS(object):
         self.loglvl = loglvl
 
         self.decoder = None;
+        self.gsmwsdb_lock = threading.Lock()
         #self.decoder = decoder.GSMDecoder()
         #self.decoder.daemon = True
         #self.decoder.start()
@@ -139,8 +140,35 @@ class BTS(object):
             self.restart()
         return True
 
+    def get_random_c0s(self, gsmws_db):
+        chosen_c0s = []
+        random_c0s = random.sample(xrange(1, 124), 5)
+        with self.gsmwsdb_lock:
+            available_arfcns = (gsmws_db.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
 
-    def set_neighbors(self, arfcns, real=[]):
+            if len(available_arfcns) == 0:
+                for c0 in random_c0s:
+                    chosen_c0s.append(c0)
+            else:
+                for c0 in random_c0s:
+                    if c0 not in available_arfcns:
+                        chosen_c0s.append(c0)
+                    else:
+                        c0_timestamp = (gsmws_db.execute("SELECT TIMESTAMP FROM AVAIL_ARFCN WHERE ARFCN=?", c0))
+                        time_difference = (datetime.datetime.now - c0_timestamp)
+                        hour_difference = time_difference.seconds / 60 / 60
+                        if hour_difference > 24:
+                            chosen_c0s.append(c0) 
+        return chosen_c0s
+
+    def put_c0s_into_file(self, gsmws_db):
+        c0s_for_file = self.get_random_c0s(gsmws_db)
+        with open('/home/openbts/c0file.txt', 'w+') as c0file:
+            for c0 in c0s_for_file:
+                c0file.write("%d\n" % c0)
+
+
+    def set_neighbors(self, arfcns, gsmws_db, real=[]):
         """
         The new OpenBTS handover feature makes setting the neighbor list a bit
         more complicated. You're supposed to just set the IP addresses of the
@@ -168,6 +196,18 @@ class BTS(object):
         Returns:
             True if we successfully set up the new neighbors, false otherwise
         """
+
+        # set GSM.Neighbors to empty string 
+        try:
+            r = self.node_manager.update_config("GSM.Neighbors", "")
+            logging.debug("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
+            logging.info("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
+        except openbts.exceptions.InvalidResponseError:
+            logging.debug("neighbors unchanged")
+            logging.info("neighbors unchanged")
+
+        # put random c0s into file
+        self.put_c0s_into_file(gsmws_db)
 
         # Need to generate a mapping of ARFCNs : IPs
         fake_neighbors = {}

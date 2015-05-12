@@ -248,15 +248,7 @@ class GSMDecoder(threading.Thread):
                 for arfcn in report.current_bsics:
                     if report.current_bsics[arfcn] != None:
                         logging.debug("ZOUNDS! AN ENEMY BSIC: %d (ARFCN %d, decoder %d)" % (report.current_bsics[arfcn], arfcn, self.decoder_id))
-        elif message.startswith("GSM CCCH - System Information Type 2"):
-            sysinfo2 = gsm.SystemInformationTwo(message)
-            self.last_arfcns = sysinfo2.arfcns
-            self.ncc_permitted = sysinfo2.ncc_permitted
-            logging.debug("(decoder %d) SystemInformation2: %s" % (self.decoder_id, str(sysinfo2.arfcns)))
-        elif message.startswith("GSM TAP Header"):
-
             gsmtap = gsm.GSMTAP(message)
-            self.current_arfcn = gsmtap.arfcn
             neighbor_details = gsmtap.neighbor_details
             if self.runtime["initial_time"] == None:
                 self.runtime["initial_time"] = datetime.datetime.now()
@@ -267,28 +259,40 @@ class GSMDecoder(threading.Thread):
 
                 for arfcn in neighbor_details["arfcns"]:
                         logging.info("(decoder %d) GSMTAP: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
-                        if neighbor_details["arfcns"][arfcn] not in self.runtime["arfcns"]:
-                            self.runtime["arfcns"].append(neighbor_details["arfcns"][arfcn])
-                            self.runtime["rssis"].append(neighbor_details["rssis"][arfcn])
-                            self.runtime["arfcn_tracking"].insert(neighbor_details["arfcns"].index(neighbor_details["arfcns"][arfcn]), True)
+                        #neighbor_details["arfcns"][arfcn]
+                        if arfcn not in self.runtime["arfcns"]:
+                            self.runtime["arfcns"].append(arfcn)#neighbor_details["arfcns"][arfcn])
+                            #self.runtime["rssis"].append(neighbor_details["rssis"][arfcn])
+                            self.runtime["arfcn_tracking"].insert(neighbor_details["arfcns"].index(arfcn), True)#neighbor_details["arfcns"][arfcn]), True)
                            
                         else:
-                            self.runtime["arfcn_tracking"].insert(neighbor_details["arfcns"].index(neighbor_details["arfcns"][arfcn]), True)
+                            self.runtime["arfcn_tracking"].insert(neighbor_details["arfcns"].index(arfcn), True)#neighbor_details["arfcns"][arfcn]), True)
                         
-                        indexes.append(neighbor_details["arfcns"].index(neighbor_details["arfcns"][arfcn]))
+                        indexes.append(neighbor_details["arfcns"].index(arfcn))
+
+                for rssi in neighbor_details["rssis"]:
+                    if rssi not in self.runtime["rssis"]:
+                       self.runtime["rssis"].append(rssi) 
   
                 for _ in self.rutime["arfcn_tracking"]:
                     if _ not in indexes:
-                        self.runtime["arfcn_tracking"].insert(_, False)
+                        self.runtime["arfcn_tracking"].insert(self.runtime["arfcn_tracking"].index(_), False)
 
             if timestamp - self.runtime["initial_time"] > self.NEIGHBOR_CYCLE_TIME:
                 if len(self.runtime["arfcns"]) > 0:
                     # unique_list_of_arfcns = list(set(self.runtime["arfcns"]))
                     with self.gsmwsdb_lock:
                         for tracker in self.runtime["arfcn_tracking"]:
-                            if self.runtime["arfcn_tracking"][tracker] is False:
+                            if tracker is False:
                                 self.gsmwsdb.execute("INSERT INTO AVAIL_ARFCN VALUES(?,?,?)",
-                                                 (self.runtime["arfcns"][tracker], timestamp, self.runtime["rssis"][tracker]))
-
-            logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
+                                                 (tracker, timestamp, self.runtime["rssis"][self.runtime["arfcn_tracking"].index(tracker)]))
+        elif message.startswith("GSM CCCH - System Information Type 2"):
+            sysinfo2 = gsm.SystemInformationTwo(message)
+            self.last_arfcns = sysinfo2.arfcns
+            self.ncc_permitted = sysinfo2.ncc_permitted
+            logging.debug("(decoder %d) SystemInformation2: %s" % (self.decoder_id, str(sysinfo2.arfcns)))
+        elif message.startswith("GSM TAP Header"):
+            gsmtap = gsm.GSMTAP(message)
+            self.current_arfcn = gsmtap.arfcn
+             logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
 
