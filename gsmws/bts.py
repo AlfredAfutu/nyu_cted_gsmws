@@ -141,15 +141,19 @@ class BTS(object):
         return True
 
     def get_random_c0s(self, gsmws_db):
+        logging.info("In get random c0s")
         chosen_c0s = []
         random_c0s = random.sample(xrange(1, 124), 5)
+        logging.info("Random C0s %s" % random_c0s)
         with self.gsmwsdb_lock:
             available_arfcns = (gsmws_db.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
 
             if len(available_arfcns) == 0:
+                logging.info("No available_arfcns yet")
                 for c0 in random_c0s:
                     chosen_c0s.append(c0)
             else:
+                logging.info("Available_arfcns present")
                 for c0 in random_c0s:
                     if c0 not in available_arfcns:
                         chosen_c0s.append(c0)
@@ -157,15 +161,25 @@ class BTS(object):
                         c0_timestamp = (gsmws_db.execute("SELECT TIMESTAMP FROM AVAIL_ARFCN WHERE ARFCN=?", c0))
                         time_difference = (datetime.datetime.now - c0_timestamp)
                         hour_difference = time_difference.seconds / 60 / 60
+                        logging.info("Hour difference %s" % hour_difference)
                         if hour_difference > 24:
                             chosen_c0s.append(c0) 
+
+       
         return chosen_c0s
+      
 
     def put_c0s_into_file(self, gsmws_db):
+        logging.info("In Put c0s into file")
         c0s_for_file = self.get_random_c0s(gsmws_db)
-        with open('/home/openbts/c0file.txt', 'w+') as c0file:
-            for c0 in c0s_for_file:
-                c0file.write("%d\n" % c0)
+        if len(c0s_for_file) == 0:
+            logging.info("C0s for file is empty")
+            self.put_c0s_into_file(gsmws_db)
+        else:
+            logging.info("Putting C0s in file")
+            with open('/home/openbts/c0file.txt', 'w+') as c0file:
+                for c0 in c0s_for_file:
+                    c0file.write("%d\n" % c0)
 
 
     def set_neighbors(self, arfcns, gsmws_db, real=[]):
@@ -199,6 +213,7 @@ class BTS(object):
 
         # set GSM.Neighbors to empty string 
         try:
+            logging.info("In setting GSM.Neighbors to empty string")
             r = self.node_manager.update_config("GSM.Neighbors", "")
             logging.debug("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
             logging.info("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
@@ -210,6 +225,7 @@ class BTS(object):
         self.put_c0s_into_file(gsmws_db)
 
         # Need to generate a mapping of ARFCNs : IPs
+        logging.info("About to put fake IPs in GSM.Neighbors")
         fake_neighbors = {}
         # set 5 IPs  len(arfcns)
         for i in range(0, 5):
