@@ -71,7 +71,7 @@ class GSMDecoder(threading.Thread):
     """
 
 
-    def __init__(self, stream, db_lock, nct, gsmwsdb_location="/tmp/gsmws.db", maxlen=100, loglvl=logging.INFO, decoder_id=0):
+    def __init__(self, stream, db_lock, gsmwsdb_location, nct, maxlen=100, loglvl=logging.INFO, decoder_id=0):
         threading.Thread.__init__(self)
         self.stream = stream
         self.current_message = ""
@@ -159,6 +159,7 @@ class GSMDecoder(threading.Thread):
 
 
     def run(self):
+        logging.info("In Decoder run")
         self.gsmwsdb = sqlite3.connect(self.gsmwsdb_location)
         self._populate_strengths()
 
@@ -232,8 +233,10 @@ class GSMDecoder(threading.Thread):
 
 
     def process(self, message):
+        logging.info("In Decoder process")
         self.msgs_seen += 1
         if message.startswith("GSM A-I/F DTAP - Measurement Report"):
+            logging.info("In Decoder Measurement Report")
             if self.ignore_reports or self.current_arfcn is None or len(self.last_arfcns) == 0:
                 return # skip for now, we don't have enough data to work with
 
@@ -294,5 +297,5 @@ class GSMDecoder(threading.Thread):
         elif message.startswith("GSM TAP Header"):
             gsmtap = gsm.GSMTAP(message)
             self.current_arfcn = gsmtap.arfcn
-             logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
+            logging.debug("(decoder %d) GSMTAP: Current ARFCN=%s" % (self.decoder_id, str(gsmtap.arfcn)))
 

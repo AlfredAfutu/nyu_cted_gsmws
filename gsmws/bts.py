@@ -5,10 +5,10 @@ This file is part of GSMWS.
 import datetime
 import sqlite3
 import logging
-
+import threading
 import envoy
 import openbts
-
+import random
 import decoder
 
 class BTS(object):
@@ -38,6 +38,7 @@ class BTS(object):
         """ Start the decoder for this BTS. We do this separately since we want
         to be able to create the BTS external to the controller, but we don't
         have a global DB lock until the controller starts."""
+        logging.info("Decoder started")
         self.decoder = gsm_decoder
         self.decoder.start()
 
@@ -171,13 +172,14 @@ class BTS(object):
 
     def put_c0s_into_file(self, gsmws_db):
         logging.info("In Put c0s into file")
-        c0s_for_file = self.get_random_c0s(gsmws_db)
+        c0s_for_file =self.get_random_c0s(gsmws_db)
         if len(c0s_for_file) == 0:
             logging.info("C0s for file is empty")
             self.put_c0s_into_file(gsmws_db)
         else:
             logging.info("Putting C0s in file")
-            with open('/home/openbts/c0file.txt', 'w+') as c0file:
+            with open('/var/run/c0file.txt', 'w+') as c0file:
+                c0file.truncate()
                 for c0 in c0s_for_file:
                     c0file.write("%d\n" % c0)
 
@@ -210,18 +212,20 @@ class BTS(object):
         Returns:
             True if we successfully set up the new neighbors, false otherwise
         """
-
+          
         # set GSM.Neighbors to empty string 
         try:
             logging.info("In setting GSM.Neighbors to empty string")
+            logging.info("Gsmws db conneciton % s" % gsmws_db)
             r = self.node_manager.update_config("GSM.Neighbors", "")
-            logging.debug("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
-            logging.info("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
+           # logging.debug("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
+            logging.info("Updating neighbors with empty string %s'" % r.data)
         except openbts.exceptions.InvalidResponseError:
             logging.debug("neighbors unchanged")
             logging.info("neighbors unchanged")
 
         # put random c0s into file
+        logging.info("About to enter put c0s into file")
         self.put_c0s_into_file(gsmws_db)
 
         # Need to generate a mapping of ARFCNs : IPs

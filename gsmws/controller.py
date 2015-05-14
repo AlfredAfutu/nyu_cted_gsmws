@@ -145,6 +145,7 @@ class Controller(object):
                     except IndexError:
                         logging.error("Unable to pick new safe ARFCN!")
                         pass # just don't pick for now
+                    logging.info("Self Gsmws db connection %s" % self.gsmwsdb)
                     self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
                     self.bts.decoder.ignore_reports = True
                     ignored_since = now

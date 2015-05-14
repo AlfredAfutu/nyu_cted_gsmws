@@ -6,6 +6,7 @@ import subprocess
 import sys
 import datetime
 import re
+import logging
 
 """
 Rather than decoding the actual packet stream, we just run tshark w/ verbose
@@ -119,7 +120,9 @@ class GSMTAP(object):
         neighbors_dict["arfcns"] = []
         neighbors_dict["rssis"] = []
         neighbor_reports = regex['cell_report'].findall(message)
-        assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
+        #assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
+        logging.info("Neighbor report size %s" % len(neighbor_reports))
+        logging.info("Number of cells %s" % (regex['num_cells'].findall(message)))
         for report in neighbor_reports:
             neighbors_dict["arfcns"].insert(report, int(report[1]))
             neighbors_dict["rssis"].insert(report, int(report[0]))
