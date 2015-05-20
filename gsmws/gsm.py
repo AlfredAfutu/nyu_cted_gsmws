@@ -41,6 +41,7 @@ class MeasurementReport(object):
         self.result_msg = result_msg
         self.valid = False
         self.current_strengths, self.current_bsics = self.parse(last_arfcns, current_arfcn)
+        self.neighbor_details = self.get_arfcns()
 
     @staticmethod
     def sample():
@@ -100,34 +101,36 @@ GSM A-I/F DTAP - Measurement Report
     def __str__(self):
         return "%s %s" % (self.timestamp, str(self.current_strengths))
 
+    def get_arfcns(self, result_msg=None):
+        if result_msg == None:
+            result_msg = self.result_msg
+        neighbors_dict = {}
+        neighbors_dict["arfcns"] = []
+        neighbors_dict["rssis"] = []
+        neighbor_reports = regex['cell_report'].findall(result_msg)
+        #assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
+        logging.info("Neighbor report size %s" % len(neighbor_reports))
+        logging.info("Number of cells %s" % (regex['num_cells'].findall(result_msg)))
+        for report in neighbor_reports:
+            neighbors_dict["arfcns"].insert(report, int(report[1]))
+            neighbors_dict["rssis"].insert(report, int(report[0]))
+
+        return neighbors_dict
+
 
 class GSMTAP(object):
     def __init__(self, message):
         self.timestamp = datetime.datetime.now()
         self.message = message
         self.arfcn = self.parse()
-        self.neighbor_details = self.get_arfcns()
+        
 
     def parse(self, message=None):
         if message == None:
             message = self.message
         return int(regex['arfcn'].findall(message)[0])
 
-    def get_arfcns(self, message=None):
-        if message == None:
-            message = self.message
-        neighbors_dict = {}
-        neighbors_dict["arfcns"] = []
-        neighbors_dict["rssis"] = []
-        neighbor_reports = regex['cell_report'].findall(message)
-        #assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
-        logging.info("Neighbor report size %s" % len(neighbor_reports))
-        logging.info("Number of cells %s" % (regex['num_cells'].findall(message)))
-        for report in neighbor_reports:
-            neighbors_dict["arfcns"].insert(report, int(report[1]))
-            neighbors_dict["rssis"].insert(report, int(report[0]))
-
-        return neighbors_dict
+    
 
 
 class SystemInformationTwo(object):

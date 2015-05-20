@@ -251,8 +251,8 @@ class GSMDecoder(threading.Thread):
                 for arfcn in report.current_bsics:
                     if report.current_bsics[arfcn] != None:
                         logging.debug("ZOUNDS! AN ENEMY BSIC: %d (ARFCN %d, decoder %d)" % (report.current_bsics[arfcn], arfcn, self.decoder_id))
-            gsmtap = gsm.GSMTAP(message)
-            neighbor_details = gsmtap.neighbor_details
+            #gsmtap = gsm.GSMTAP(message)
+            neighbor_details = report.neighbor_details
             if self.runtime["initial_time"] == None:
                 self.runtime["initial_time"] = datetime.datetime.now()
             timestamp = datetime.datetime.now()
@@ -261,7 +261,7 @@ class GSMDecoder(threading.Thread):
             if len(neighbor_details["arfcns"]) > 0:
 
                 for arfcn in neighbor_details["arfcns"]:
-                        logging.info("(decoder %d) GSMTAP: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
+                        logging.info("(decoder %d) MeasureMent Report: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
                         #neighbor_details["arfcns"][arfcn]
                         if arfcn not in self.runtime["arfcns"]:
                             self.runtime["arfcns"].append(arfcn)#neighbor_details["arfcns"][arfcn])
