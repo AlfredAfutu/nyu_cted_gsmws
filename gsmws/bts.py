@@ -234,7 +234,7 @@ class BTS(object):
         # set 5 IPs  len(arfcns)
         for i in range(0, 5):
             chan = arfcns[i]
-            fake_neighbors[chan] = "127.0.10.%d:16001" % (i + 10,)
+            fake_neighbors[chan] = "127.0.0.%d:16001" % (i + 10,)
 
         real_ip_str = " ".join([str(bts_ip) for bts_ip in real])
         fake_ip_str = " ".join([str(ip) for ip in fake_neighbors.values()])
