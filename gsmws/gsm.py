@@ -112,8 +112,10 @@ GSM A-I/F DTAP - Measurement Report
         logging.info("Neighbor report size %s" % len(neighbor_reports))
         logging.info("Number of cells %s" % (regex['num_cells'].findall(result_msg)))
         for report in neighbor_reports:
-            neighbors_dict["arfcns"].insert(report, int(report[1]))
-            neighbors_dict["rssis"].insert(report, int(report[0]))
+            logging.info("Neighbor report arfcn at %d is %s" % (neighbor_reports.index(report), int(report[1])))
+            logging.info("Neighbor report rssi at %d is %s" % (neighbor_reports.index(report), int(report[0])))
+            neighbors_dict["arfcns"].insert(neighbor_reports.index(report), int(report[1]))
+            neighbors_dict["rssis"].insert(neighbor_reports.index(report), int(report[0]))
 
         return neighbors_dict
 

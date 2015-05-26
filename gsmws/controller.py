@@ -141,7 +141,8 @@ class Controller(object):
                 if td.seconds > self.NEIGHBOR_CYCLE_TIME:
                     try:
                         new_arfcn = self.pick_new_safe_arfcn()
-                        bts.change_arfcn(new_arfcn)
+                        logging.info("New ARFCN picked is %s" % new_arfcn)
+                        self.bts.change_arfcn(new_arfcn)
                     except IndexError:
                         logging.error("Unable to pick new safe ARFCN!")
                         pass # just don't pick for now
