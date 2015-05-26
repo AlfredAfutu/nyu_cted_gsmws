@@ -111,7 +111,7 @@ class Controller(object):
         with self.gsmwsdb_lock:
             available_arfcns = (self.gsmwsdb.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
             existing = [arfcn for res in available_arfcns for arfcn in res]
-        return random.sample([_ for _ in range(1,124) if _ not in existing], 5)
+        return random.sample([_ for _ in range(1,124) if _ not in existing], 15)
 
     def main(self, stream=None, cmd=None):
         self.initdb() # set up the gsmws db
@@ -128,6 +128,7 @@ class Controller(object):
         self.bts = self.bts_class();
         
         self.bts.init_decoder(gsmd)
+        self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
         last_cycle_time = datetime.datetime.now()
         ignored_since = datetime.datetime.now()
         while True:
@@ -146,7 +147,7 @@ class Controller(object):
                     except IndexError:
                         logging.error("Unable to pick new safe ARFCN!")
                         pass # just don't pick for now
-                    logging.info("Self Gsmws db connection %s" % self.gsmwsdb)
+                    #logging.info("Self Gsmws db connection %s" % self.gsmwsdb)
                     self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
                     self.bts.decoder.ignore_reports = True
                     ignored_since = now

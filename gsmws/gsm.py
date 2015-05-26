@@ -109,10 +109,10 @@ GSM A-I/F DTAP - Measurement Report
         neighbors_dict["rssis"] = []
         neighbor_reports = regex['cell_report'].findall(result_msg)
         #assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
-        logging.info("Neighbor report size %s" % len(neighbor_reports))
-        logging.info("Number of cells %s" % (regex['num_cells'].findall(result_msg)))
+        #logging.info("Neighbor report size %s" % len(neighbor_reports))
+        #logging.info("Number of cells %s" % (regex['num_cells'].findall(result_msg)))
         for report in neighbor_reports:
-            logging.info("Neighbor report arfcn at %d is %s" % (neighbor_reports.index(report), int(report[1])))
+            #logging.info("Neighbor report arfcn at %d is %s" % (neighbor_reports.index(report), int(report[1])))
             logging.info("Neighbor report rssi at %d is %s" % (neighbor_reports.index(report), int(report[0])))
             neighbors_dict["arfcns"].insert(neighbor_reports.index(report), int(report[1]))
             neighbors_dict["rssis"].insert(neighbor_reports.index(report), int(report[0]))

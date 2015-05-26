@@ -233,7 +233,7 @@ class GSMDecoder(threading.Thread):
 
 
     def process(self, message):
-        logging.info("In Decoder process")
+        #logging.info("In Decoder process")
         self.msgs_seen += 1
         if message.startswith("GSM A-I/F DTAP - Measurement Report"):
             logging.info("In Decoder Measurement Report")
@@ -261,7 +261,7 @@ class GSMDecoder(threading.Thread):
             if len(neighbor_details["arfcns"]) > 0:
 
                 for arfcn in neighbor_details["arfcns"]:
-                        logging.info("(decoder %d) MeasureMent Report: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
+                        #logging.info("(decoder %d) MeasureMent Report: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
                         #neighbor_details["arfcns"][arfcn]
                         if str(arfcn) != 0:
                             if arfcn not in self.runtime["arfcns"]:

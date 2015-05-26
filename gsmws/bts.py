@@ -144,8 +144,9 @@ class BTS(object):
     def get_random_c0s(self, gsmws_db):
         logging.info("In get random c0s")
         chosen_c0s = []
-        random_c0s = random.sample(xrange(1, 124), 5)
-        logging.info("Random C0s %s" % random_c0s)
+        #random_c0s = random.sample(xrange(1, 124), 5)
+        random_c0s = [1, 2, 3, 4, 5, 41, 42, 43, 44, 45, 81, 82, 83, 84, 85]
+        logging.info("Channels %s" % random_c0s)
         with self.gsmwsdb_lock:
             available_arfcns = (gsmws_db.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
 
@@ -215,24 +216,24 @@ class BTS(object):
           
         # set GSM.Neighbors to empty string 
         try:
-            logging.info("In setting GSM.Neighbors to empty string")
-            logging.info("Gsmws db conneciton % s" % gsmws_db)
+            #logging.info("In setting GSM.Neighbors to empty string")
+            #logging.info("Gsmws db conneciton % s" % gsmws_db)
             r = self.node_manager.update_config("GSM.Neighbors", "")
            # logging.debug("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
-            logging.info("Updating neighbors with empty string %s'" % r.data)
+            #logging.info("Updating neighbors with empty string %s'" % r.data)
         except openbts.exceptions.InvalidResponseError:
             logging.debug("neighbors unchanged")
             logging.info("neighbors unchanged")
 
         # put random c0s into file
-        logging.info("About to enter put c0s into file")
+        #logging.info("About to enter put c0s into file")
         self.put_c0s_into_file(gsmws_db)
 
         # Need to generate a mapping of ARFCNs : IPs
-        logging.info("About to put fake IPs in GSM.Neighbors")
+        #logging.info("About to put fake IPs in GSM.Neighbors")
         fake_neighbors = {}
         # set 5 IPs  len(arfcns)
-        for i in range(0, 5):
+        for i in range(0, 15):
             chan = arfcns[i]
             fake_neighbors[chan] = "127.0.0.%d:16001" % (i + 10,)
 
