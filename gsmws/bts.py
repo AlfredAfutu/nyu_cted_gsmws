@@ -172,12 +172,12 @@ class BTS(object):
         return chosen_c0s
       
 
-    def put_c0s_into_file(self, gsmws_db):
+    def put_c0s_into_file(self, gsmws_db, c0s):
         logging.info("In Put c0s into file")
-        c0s_for_file =self.get_random_c0s(gsmws_db)
+        c0s_for_file =self.get_random_c0s(gsmws_db, c0s)
         if len(c0s_for_file) == 0:
             logging.info("C0s for file is empty")
-            self.put_c0s_into_file(gsmws_db)
+            self.put_c0s_into_file(gsmws_db, c0s)
         else:
             logging.info("Putting C0s in file")
             with open('/var/run/c0file.txt', 'w+') as c0file:
@@ -186,7 +186,7 @@ class BTS(object):
                     c0file.write("%d\n" % c0)
 
 
-    def set_neighbors(self, arfcns, gsmws_db, real=[]):
+    def set_neighbors(self, arfcns, gsmws_db, c0s, real=[]):
         """
         The new OpenBTS handover feature makes setting the neighbor list a bit
         more complicated. You're supposed to just set the IP addresses of the
@@ -228,7 +228,7 @@ class BTS(object):
 
         # put random c0s into file
         #logging.info("About to enter put c0s into file")
-        self.put_c0s_into_file(gsmws_db)
+        self.put_c0s_into_file(gsmws_db, c0s)
 
         # Need to generate a mapping of ARFCNs : IPs
         #logging.info("About to put fake IPs in GSM.Neighbors")
