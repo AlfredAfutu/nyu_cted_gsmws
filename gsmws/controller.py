@@ -111,7 +111,7 @@ class Controller(object):
         with self.gsmwsdb_lock:
             available_arfcns = (self.gsmwsdb.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
             existing = [arfcn for res in available_arfcns for arfcn in res]
-        return random.sample([_ for _ in range(1,124) if _ not in existing], 15)
+        return random.sample([_ for _ in range(1,124) if _ not in existing], 7)
 
     def main(self, stream=None, cmd=None):
         self.initdb() # set up the gsmws db
