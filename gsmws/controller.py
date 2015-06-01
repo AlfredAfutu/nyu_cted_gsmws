@@ -128,7 +128,8 @@ class Controller(object):
         self.bts = self.bts_class();
         
         self.bts.init_decoder(gsmd)
-        self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
+        c0s_to_scan = [1, 2, 3, 4, 5, 41, 42]
+        self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb, c0s_to_scan)
         last_cycle_time = datetime.datetime.now()
         ignored_since = datetime.datetime.now()
         while True:
@@ -148,7 +149,8 @@ class Controller(object):
                         logging.error("Unable to pick new safe ARFCN!")
                         pass # just don't pick for now
                     #logging.info("Self Gsmws db connection %s" % self.gsmwsdb)
-                    self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
+                    new_c0s_to_scan = [43, 44, 45, 81, 82, 83, 84]
+                    self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb, new_c0s_to_scan)
                     self.bts.decoder.ignore_reports = True
                     ignored_since = now
                     last_cycle_time = now

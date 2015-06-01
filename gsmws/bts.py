@@ -141,11 +141,12 @@ class BTS(object):
             self.restart()
         return True
 
-    def get_random_c0s(self, gsmws_db):
+    def get_random_c0s(self, gsmws_db, c0s):
         logging.info("In get random c0s")
         chosen_c0s = []
         #random_c0s = random.sample(xrange(1, 124), 5)
-        random_c0s = [1, 2, 3, 4, 5, 41, 42, 43, 44, 45, 81, 82, 83, 84, 85]
+        #random_c0s = [1, 2, 3, 4, 5, 41, 42, 43, 44, 45, 81, 82, 83, 84, 85]
+        random_c0s = c0s;
         logging.info("Channels %s" % random_c0s)
         with self.gsmwsdb_lock:
             available_arfcns = (gsmws_db.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
