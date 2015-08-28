@@ -234,7 +234,7 @@ class BTS(object):
         #logging.info("About to put fake IPs in GSM.Neighbors")
         fake_neighbors = {}
         # set 5 IPs  len(arfcns)
-        for i in range(0, 16):
+        for i in range(0, 15):
             chan = arfcns[i]
             fake_neighbors[chan] = "127.0.0.%d:16001" % (i + 10,)
 
