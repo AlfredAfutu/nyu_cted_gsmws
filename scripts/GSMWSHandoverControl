@@ -46,13 +46,13 @@ if __name__ == "__main__":
     bts1_conf = {'db_loc': args.openbtsdb1,
                  'bts_class': BTS_CLASS,
                  'stream': stream1,
-                 'start_cmd': None # unused right now... TODO
+                 #'start_cmd': None # unused right now... TODO
                  }
 
     bts2_conf = {'db_loc': args.openbtsdb2,
                  'bts_class': BTS_CLASS,
                  'stream': stream2,
-                 'start_cmd': None # unused right now... TODO
+                 #'start_cmd': None # unused right now... TODO
                  }
 
     NEIGHBOR_CYCLE_TIME = args.cycle # seconds to wait before switching up the neighbor list
