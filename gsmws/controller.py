@@ -2,6 +2,7 @@
 This file is part of GSMWS.
 """
 
+import os
 import time
 import datetime
 import random
@@ -12,6 +13,7 @@ import threading
 import decoder
 import gsm
 import bts
+
 
 """
 The controller has three tasks:
@@ -109,10 +111,12 @@ class Controller(object):
         with self.gsmwsdb_lock:
             available_arfcns = (self.gsmwsdb.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
             existing = [arfcn for res in available_arfcns for arfcn in res]
-        return random.sample([_ for _ in range(1,124) if _ not in existing], 5)
+        return random.sample([_ for _ in range(1,124) if _ not in existing], 7)
 
     def main(self, stream=None, cmd=None):
         self.initdb() # set up the gsmws db
+
+        #self.put_c0s_into_file() # set up c0 file with 5 random c0s
 
         if stream==None:
             if cmd==None:
@@ -120,10 +124,12 @@ class Controller(object):
             stream = gsm.command_stream(cmd)
 
         gsmd = decoder.GSMDecoder(stream, self.gsmwsdb_lock,
-                                  self.gsmwsdb_location, loglvl=self.loglvl)
+                                  self.gsmwsdb_location, self.NEIGHBOR_CYCLE_TIME, loglvl=self.loglvl)
         self.bts = self.bts_class();
         
         self.bts.init_decoder(gsmd)
+        c0s_to_scan = [1, 2, 3, 4, 5, 41, 42]
+        self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb, c0s_to_scan)
         last_cycle_time = datetime.datetime.now()
         ignored_since = datetime.datetime.now()
         while True:
@@ -137,11 +143,14 @@ class Controller(object):
                 if td.seconds > self.NEIGHBOR_CYCLE_TIME:
                     try:
                         new_arfcn = self.pick_new_safe_arfcn()
-                        bts.change_arfcn(new_arfcn)
+                        logging.info("New ARFCN picked is %s" % new_arfcn)
+                        self.bts.change_arfcn(new_arfcn)
                     except IndexError:
                         logging.error("Unable to pick new safe ARFCN!")
                         pass # just don't pick for now
-                    self.bts.set_neighbors(self.pick_new_neighbors())
+                    #logging.info("Self Gsmws db connection %s" % self.gsmwsdb)
+                    new_c0s_to_scan = [43, 44, 45, 81, 82, 83, 84]
+                    self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb, new_c0s_to_scan)
                     self.bts.decoder.ignore_reports = True
                     ignored_since = now
                     last_cycle_time = now
@@ -239,6 +248,9 @@ class HandoverController(Controller):
                      % (bts_id_num, self.bts_units[bts_id_num].current_arfcn,
                         other_arfcns, random_arfcns))
         return other_arfcns + random_arfcns
+
+   
+
 
     def main(self):
         self.initdb() # set up the gsmws db

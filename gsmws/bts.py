@@ -5,10 +5,10 @@ This file is part of GSMWS.
 import datetime
 import sqlite3
 import logging
-
+import threading
 import envoy
 import openbts
-
+import random
 import decoder
 
 class BTS(object):
@@ -29,6 +29,7 @@ class BTS(object):
         self.loglvl = loglvl
 
         self.decoder = None;
+        self.gsmwsdb_lock = threading.Lock()
         #self.decoder = decoder.GSMDecoder()
         #self.decoder.daemon = True
         #self.decoder.start()
@@ -37,6 +38,7 @@ class BTS(object):
         """ Start the decoder for this BTS. We do this separately since we want
         to be able to create the BTS external to the controller, but we don't
         have a global DB lock until the controller starts."""
+        logging.info("Decoder started")
         self.decoder = gsm_decoder
         self.decoder.start()
 
@@ -139,8 +141,52 @@ class BTS(object):
             self.restart()
         return True
 
+    def get_random_c0s(self, gsmws_db, c0s):
+        logging.info("In get random c0s")
+        chosen_c0s = []
+        #random_c0s = random.sample(xrange(1, 124), 5)
+        #random_c0s = [1, 2, 3, 4, 5, 41, 42, 43, 44, 45, 81, 82, 83, 84, 85]
+        random_c0s = c0s;
+        logging.info("Channels %s" % random_c0s)
+        with self.gsmwsdb_lock:
+            available_arfcns = (gsmws_db.execute("SELECT ARFCN FROM AVAIL_ARFCN").fetchall())
 
-    def set_neighbors(self, arfcns, real=[]):
+            if len(available_arfcns) == 0:
+                logging.info("No available_arfcns yet")
+                for c0 in random_c0s:
+                    chosen_c0s.append(c0)
+            else:
+                logging.info("Available_arfcns present")
+                for c0 in random_c0s:
+                    if c0 not in available_arfcns:
+                        chosen_c0s.append(c0)
+                    else:
+                        c0_timestamp = (gsmws_db.execute("SELECT TIMESTAMP FROM AVAIL_ARFCN WHERE ARFCN=?", c0))
+                        time_difference = (datetime.datetime.now - c0_timestamp)
+                        hour_difference = time_difference.seconds / 60 / 60
+                        logging.info("Hour difference %s" % hour_difference)
+                        if hour_difference > 24:
+                            chosen_c0s.append(c0) 
+
+       
+        return chosen_c0s
+      
+
+    def put_c0s_into_file(self, gsmws_db, c0s):
+        logging.info("In Put c0s into file")
+        c0s_for_file =self.get_random_c0s(gsmws_db, c0s)
+        if len(c0s_for_file) == 0:
+            logging.info("C0s for file is empty")
+            self.put_c0s_into_file(gsmws_db, c0s)
+        else:
+            logging.info("Putting C0s in file")
+            with open('/var/run/c0file.txt', 'w+') as c0file:
+                c0file.truncate()
+                for c0 in c0s_for_file:
+                    c0file.write("%d\n" % c0)
+
+
+    def set_neighbors(self, arfcns, gsmws_db, c0s, real=[]):
         """
         The new OpenBTS handover feature makes setting the neighbor list a bit
         more complicated. You're supposed to just set the IP addresses of the
@@ -168,12 +214,29 @@ class BTS(object):
         Returns:
             True if we successfully set up the new neighbors, false otherwise
         """
+          
+        # set GSM.Neighbors to empty string 
+        try:
+            #logging.info("In setting GSM.Neighbors to empty string")
+            #logging.info("Gsmws db conneciton % s" % gsmws_db)
+            r = self.node_manager.update_config("GSM.Neighbors", "")
+           # logging.debug("Updating neighbors (%s) '%s': '%s'" % (arfcns, neighbor_string, r.data))
+            #logging.info("Updating neighbors with empty string %s'" % r.data)
+        except openbts.exceptions.InvalidResponseError:
+            logging.debug("neighbors unchanged")
+            logging.info("neighbors unchanged")
+
+        # put random c0s into file
+        #logging.info("About to enter put c0s into file")
+        self.put_c0s_into_file(gsmws_db, c0s)
 
         # Need to generate a mapping of ARFCNs : IPs
+        #logging.info("About to put fake IPs in GSM.Neighbors")
         fake_neighbors = {}
-        for i in range(0, len(arfcns)):
+        # set 5 IPs  len(arfcns)
+        for i in range(0, 7):
             chan = arfcns[i]
-            fake_neighbors[chan] = "127.0.10.%d:16001" % (i + 10,)
+            fake_neighbors[chan] = "127.0.0.%d:16001" % (i + 10,)
 
         real_ip_str = " ".join([str(bts_ip) for bts_ip in real])
         fake_ip_str = " ".join([str(ip) for ip in fake_neighbors.values()])
@@ -207,6 +270,7 @@ class BTS(object):
         updated = int(datetime.datetime.now().strftime("%s"))
         holdoff = 3600*24*7 # 7 days
         bsic = 1 # TODO does this matter?
+        """
         try:
             delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
             self.neighbor_table.execute(delete_query_str)
@@ -224,3 +288,4 @@ class BTS(object):
             logging.info("SQlite Operational Error is : '%s'" % operationalError)
             logging.info("Could not update NeighborTable.")
             return False
+        """

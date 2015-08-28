@@ -6,10 +6,12 @@ import gsm
 import collections
 import threading
 import logging
+import time
 import datetime
 import Queue
 import sqlite3
 import zmq
+from sets import Set
 
 class MeasurementReportList(object):
     def __init__(self, maxlen=10000):
@@ -67,16 +69,26 @@ class GSMDecoder(threading.Thread):
     This is responsible for managing the packet stream from tshark, processing
     reports, and storing the data.
     """
-    def __init__(self, stream, db_lock, gsmwsdb_location="/tmp/gsmws.db", maxlen=100, loglvl=logging.INFO, decoder_id=0):
+
+
+    def __init__(self, stream, db_lock, gsmwsdb_location, nct, maxlen=100, loglvl=logging.INFO, decoder_id=0):
         threading.Thread.__init__(self)
         self.stream = stream
         self.current_message = ""
         self.current_arfcn = None
+        self.num_of_cells = None
         self.last_arfcns = []
         self.ncc_permitted = None
         self.ignore_reports = False # ignore measurement reports
         self.msgs_seen = 0
 
+        self.runtime = {}
+        self.runtime["initial_time"] = None
+        self.runtime["arfcns"] = []
+        self.runtime["rssis"] = []
+        self.runtime["timestamp"] = []
+        self.runtime["arfcn_tracking"] = [False, False, False, False, False]
+        self.NEIGHBOR_CYCLE_TIME = nct
         self.gsmwsdb_lock = db_lock
         self.gsmwsdb_location = gsmwsdb_location
         self.gsmwsdb = None # this gets created in run()
@@ -147,6 +159,7 @@ class GSMDecoder(threading.Thread):
 
 
     def run(self):
+        logging.info("In Decoder run")
         self.gsmwsdb = sqlite3.connect(self.gsmwsdb_location)
         self._populate_strengths()
 
@@ -217,9 +230,13 @@ class GSMDecoder(threading.Thread):
         self.rssi()
         self.__write_rssi()
 
+
+
     def process(self, message):
+        logging.info("In Decoder process")
         self.msgs_seen += 1
         if message.startswith("GSM A-I/F DTAP - Measurement Report"):
+            logging.info("In Decoder Measurement Report")
             if self.ignore_reports or self.current_arfcn is None or len(self.last_arfcns) == 0:
                 return # skip for now, we don't have enough data to work with
 
@@ -234,6 +251,47 @@ class GSMDecoder(threading.Thread):
                 for arfcn in report.current_bsics:
                     if report.current_bsics[arfcn] != None:
                         logging.debug("ZOUNDS! AN ENEMY BSIC: %d (ARFCN %d, decoder %d)" % (report.current_bsics[arfcn], arfcn, self.decoder_id))
+                        
+            #gsmtap = gsm.GSMTAP(message)
+            #neighbor_details = report.neighbor_details
+            #if self.runtime["initial_time"] == None:
+            #    self.runtime["initial_time"] = datetime.datetime.now()
+            #timestamp = datetime.datetime.now()
+            #indexes = []
+
+            #if len(neighbor_details["arfcns"]) > 0:
+
+            #    for arfcn in neighbor_details["arfcns"]:
+                        #logging.info("(decoder %d) MeasureMent Report: Neighbor ARFCN=%s" % (self.decoder_id, arfcn))
+                        #neighbor_details["arfcns"][arfcn]
+            #            if str(arfcn) != 0:
+            #                if arfcn not in self.runtime["arfcns"]:
+            #                    self.runtime["arfcns"].append(arfcn)#neighbor_details["arfcns"][arfcn])
+                                #self.runtime["rssis"].append(neighbor_details["rssis"][arfcn])
+            #                    self.runtime["arfcn_tracking"].insert(neighbor_details["arfcns"].index(arfcn), True)#neighbor_details["arfcns"][arfcn]), True)
+                           
+            #                else:
+            #                    self.runtime["arfcn_tracking"].insert(neighbor_details["arfcns"].index(arfcn), True)#neighbor_details["arfcns"][arfcn]), True)
+                        
+            #                indexes.append(neighbor_details["arfcns"].index(arfcn))
+
+            #    for rssi in neighbor_details["rssis"]:
+            #        if rssi not in self.runtime["rssis"]:
+            #           self.runtime["rssis"].append(rssi) 
+  
+            #    for _ in self.runtime["arfcn_tracking"]:
+            #        if _ not in indexes:
+            #            self.runtime["arfcn_tracking"].insert(self.runtime["arfcn_tracking"].index(_), False)
+
+            #checked_time = timestamp - self.runtime["initial_time"]
+            #if checked_time.seconds > self.NEIGHBOR_CYCLE_TIME:
+            #    if len(self.runtime["arfcns"]) > 0:
+                    # unique_list_of_arfcns = list(set(self.runtime["arfcns"]))
+            #        with self.gsmwsdb_lock:
+            #            for tracker in self.runtime["arfcn_tracking"]:
+            #                if tracker is False:
+            #                    self.gsmwsdb.execute("INSERT INTO AVAIL_ARFCN VALUES(?,?,?)",
+            #                                     (tracker, timestamp, self.runtime["rssis"][self.runtime["arfcn_tracking"].index(tracker)]))
         elif message.startswith("GSM CCCH - System Information Type 2"):
             sysinfo2 = gsm.SystemInformationTwo(message)
             self.last_arfcns = sysinfo2.arfcns

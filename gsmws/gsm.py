@@ -6,6 +6,7 @@ import subprocess
 import sys
 import datetime
 import re
+import logging
 
 """
 Rather than decoding the actual packet stream, we just run tshark w/ verbose
@@ -40,6 +41,7 @@ class MeasurementReport(object):
         self.result_msg = result_msg
         self.valid = False
         self.current_strengths, self.current_bsics = self.parse(last_arfcns, current_arfcn)
+        self.neighbor_details = self.get_arfcns()
 
     @staticmethod
     def sample():
@@ -66,8 +68,8 @@ GSM A-I/F DTAP - Measurement Report
     def parse(self, last_arfcns, current_arfcn, result_msg=None):
         if result_msg == None:
             result_msg = self.result_msg
-        strengths = dict(zip(last_arfcns,[-0.001 for _ in range(0,len(last_arfcns))]))
-        bsics = dict(zip(last_arfcns,[None for _ in range(0,len(last_arfcns))]))
+        strengths = dict(zip(last_arfcns, [-0.001 for _ in range(0, len(last_arfcns))]))
+        bsics = dict(zip(last_arfcns, [None for _ in range(0, len(last_arfcns))]))
         serving_strength = int(regex['current_strength'].findall(result_msg)[0])
         strengths[current_arfcn] = serving_strength
 
@@ -94,8 +96,28 @@ GSM A-I/F DTAP - Measurement Report
         self.valid = True
         return strengths, bsics
 
+
+
     def __str__(self):
         return "%s %s" % (self.timestamp, str(self.current_strengths))
+
+    def get_arfcns(self, result_msg=None):
+        if result_msg == None:
+            result_msg = self.result_msg
+        neighbors_dict = {}
+        neighbors_dict["arfcns"] = []
+        neighbors_dict["rssis"] = []
+        neighbor_reports = regex['cell_report'].findall(result_msg)
+        #assert len(neighbor_reports) == int(regex['num_cells'].findall(message)[0])
+        #logging.info("Neighbor report size %s" % len(neighbor_reports))
+        #logging.info("Number of cells %s" % (regex['num_cells'].findall(result_msg)))
+        for report in neighbor_reports:
+            #logging.info("Neighbor report arfcn at %d is %s" % (neighbor_reports.index(report), int(report[1])))
+            logging.info("Neighbor report rssi at %d is %s" % (neighbor_reports.index(report), int(report[0])))
+            neighbors_dict["arfcns"].insert(neighbor_reports.index(report), int(report[1]))
+            neighbors_dict["rssis"].insert(neighbor_reports.index(report), int(report[0]))
+
+        return neighbors_dict
 
 
 class GSMTAP(object):
@@ -103,11 +125,15 @@ class GSMTAP(object):
         self.timestamp = datetime.datetime.now()
         self.message = message
         self.arfcn = self.parse()
+        
 
     def parse(self, message=None):
         if message == None:
             message = self.message
         return int(regex['arfcn'].findall(message)[0])
+
+    
+
 
 class SystemInformationTwo(object):
     def __init__(self, message):
