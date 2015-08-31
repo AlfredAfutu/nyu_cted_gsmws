@@ -128,8 +128,8 @@ class Controller(object):
         self.bts = self.bts_class();
         
         self.bts.init_decoder(gsmd)
-        #c0s_to_scan = [1, 2, 3, 4, 5, 41, 42]
-        self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
+        c0s_to_scan = [1, 2, 3, 4, 5, 6, 7]
+        self.bts.set_neighbors(c0s_to_scan, self.gsmwsdb)
         last_cycle_time = datetime.datetime.now()
         ignored_since = datetime.datetime.now()
         while True:
@@ -141,6 +141,7 @@ class Controller(object):
 
                 td = (now - last_cycle_time)
                 if td.seconds > self.NEIGHBOR_CYCLE_TIME:
+                    logging.info('Neigbor Cycle Time')
                     try:
                         new_arfcn = self.pick_new_safe_arfcn()
                         logging.info("New ARFCN picked is %s" % new_arfcn)
@@ -150,7 +151,12 @@ class Controller(object):
                         pass # just don't pick for now
                     #logging.info("Self Gsmws db connection %s" % self.gsmwsdb)
                     #new_c0s_to_scan = [43, 44, 45, 81, 82, 83, 84]
-                    self.bts.set_neighbors(self.pick_new_neighbors(), self.gsmwsdb)
+                    
+                    new_c0s_to_scan = random.sample([_ for _ in range(1, 121) if _ not in c0s_to_scan], 7)
+                    logging.info("New c0s to scan %s" % new_c0s_to_scan)
+                    c0s_to_scan.extend(new_c0s_to_scan)                
+                    logging.info('C0s to scan %s' % c0s_to_scan)           
+                    self.bts.set_neighbors(new_c0s_to_scan, self.gsmwsdb)
                     self.bts.decoder.ignore_reports = True
                     ignored_since = now
                     last_cycle_time = now

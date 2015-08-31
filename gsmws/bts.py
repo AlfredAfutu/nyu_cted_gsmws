@@ -234,7 +234,7 @@ class BTS(object):
         #logging.info("About to put fake IPs in GSM.Neighbors")
         fake_neighbors = {}
         # set 5 IPs  len(arfcns)
-        for i in range(0, 15):
+        for i in range(0, 7):
             chan = arfcns[i]
             fake_neighbors[chan] = "127.0.0.%d:16001" % (i + 10,)
 
@@ -270,22 +270,23 @@ class BTS(object):
         updated = int(datetime.datetime.now().strftime("%s"))
         holdoff = 3600*24*7 # 7 days
         bsic = 1 # TODO does this matter?
+
         """
-        try:
-            delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
-            self.neighbor_table.execute(delete_query_str)
-            for arfcn, ip in fake_neighbors.iteritems():
+       #  try:
+           #  delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
+           #  self.neighbor_table.execute(delete_query_str)
+           #  for arfcn, ip in fake_neighbors.iteritems():
                # query_str = "UPDATE NEIGHBOR_TABLE SET C0 = ?, UPDATED = ?, HOLDOFF = ?, BSIC = ? WHERE IPADDRESS = ?;"
                # delete_query_str = "DELETE FROM NEIGHBOR_TABLE WHERE 1;"
                # self.neighbor_table.execute(delete_query_str)
-                insert_query_str = "INSERT INTO NEIGHBOR_TABLE VALUES(?,?,?,?,?);"
+               #  insert_query_str = "INSERT INTO NEIGHBOR_TABLE VALUES(?,?,?,?,?);"
                # self.neighbor_table.execute(query_str, (arfcn, updated, holdoff, bsic, ip))
-                self.neighbor_table.execute(insert_query_str, (ip, updated, holdoff, arfcn, bsic))
-            self.neighbor_table.commit()
-            logging.info("Updated NeighborTable.")
-            return True
-        except sqlite3.OperationalError as operationalError:
-            logging.info("SQlite Operational Error is : '%s'" % operationalError)
-            logging.info("Could not update NeighborTable.")
-            return False
+               #  self.neighbor_table.execute(insert_query_str, (ip, updated, holdoff, arfcn, bsic))
+            # self.neighbor_table.commit()
+            # logging.info("Updated NeighborTable.")
+           # return True
+       # except sqlite3.OperationalError as operationalError:
+           #  logging.info("SQlite Operational Error is : '%s'" % operationalError)
+           #  logging.info("Could not update NeighborTable.")
+           #  return False
         """

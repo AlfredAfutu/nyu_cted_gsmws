@@ -170,7 +170,9 @@ RACH Control Parameters
             message = self.message
 
         res = regex['sys_info_2'].findall(message)[0]
-        logging.info('SystemInformationTwo : %s' % res)
-        arfcns = map(int,res[0].split())
-        ncc_permitted = res[1]
+       #  logging.info('SystemInformationTwo : %s' % res)
+        arfcns =map(int,res[0].split())
+        # logging.info('Arfcns: %s' % arfcns)
+        ncc_permitted =str(res[1])
+        # logging.info('Ncc permitted %s' % ncc_permitted)
         return arfcns, ncc_permitted
